@@ -96,21 +96,21 @@ def best_trades(prices, starting_liquid, max_trades, townspeople):
         for i in range(len(trade)):
             edges.append(trade[i])
     route.add_edges(edges, True)
-    trading = [(0, 0) for _ in range(v_count)]  # (litre, value)
+    trading = [(0, -math.inf) for _ in range(v_count)]  # (litre, value)
     trading[starting_liquid] = (1, prices[starting_liquid])
-    trading_2 = [(0, 0) for _ in range(v_count)]
+    trading_2 = [(0, -math.inf) for _ in range(v_count)]
 
     current_max = prices[starting_liquid]
     for trade in range(max_trades):  # O(M)
         for e in edges:  # O(T)
             litre = trading[e[0]][0] * e[2]
             trading_val = litre * prices[e[1]]
-            if trading_val > trading[e[1]][1]:
+            if trading_val > trading_2[e[1]][1]:
                 trading_2[e[1]] = litre, trading_val
             if trading_val > current_max:
                 current_max = trading_val
         trading = trading_2
-        trading_2 = [(0, 0) for _ in range(v_count)]
+        trading_2 = [(0, -math.inf) for _ in range(v_count)]
     return current_max
 
 
@@ -163,50 +163,64 @@ def dijkstra(start, end, n):
 
 
 if __name__ == "__main__":
-    prices = [10, 5, 1, 0.1]
-    starting_liquid = 0
-    max_trades = 6
-    townspeople = [[(0, 1, 4), (2, 3, 30)], [(1, 2, 2.5), (2, 0, 0.2)]]
-    print(best_trades(prices, starting_liquid, max_trades, townspeople))
+    # prices = [10, 5, 1, 0.1]
+    # starting_liquid = 0
+    # max_trades = 6
+    # townspeople = [[(0, 1, 4), (2, 3, 30)], [(1, 2, 2.5), (2, 0, 0.2)]]
+    # print(best_trades(prices, starting_liquid, max_trades, townspeople))
+    # max_trades = 2
+    # print(best_trades(prices, starting_liquid, max_trades, townspeople))
+    # max_trades = 7
+    # print(best_trades(prices, starting_liquid, max_trades, townspeople))
+    # max_trades = 9
+    # print(best_trades(prices, starting_liquid, max_trades, townspeople))
+    # prices = [20]
+    # starting_liquid = 0
+    # max_trades = 10
+    # townspeople = [[(0, 0, 1), (0, 0, 0.5)], [(0, 0, 1)]]
+    # result = best_trades(prices, starting_liquid, max_trades, townspeople)
+    # expected = 20
+    # print(result == expected)
+
+    # # Test with trading all the time
+    # townspeople = [[(0, 0, 2), (0, 0, 0.5)], [(0, 0, 1)]]
+    # result = best_trades(prices, starting_liquid, max_trades, townspeople)
+    # expected = 20 * 2 ** 10
+    # print(result == expected)
+
+    # prices = [10, 10, 10, 10, 10]
+    # starting_liquid = 1
+    # max_trades = 10
+    # townspeople = [[(1, 4, 3), (1, 2, 10), (4, 0, 10), (2, 3, 2)]]
+    # result = best_trades(prices, starting_liquid, max_trades, townspeople)
+    # expected = 300
+    # print(result == expected)
+
+    # prices = [1, 3, 2, 5, 4]
+    # starting_liquid = 2
+    # max_trades = 3
+    # townspeople = [[(1, 4, 3), (1, 2, 10), (4, 0, 10), (2, 3, 2)]]
+    # result = best_trades(prices, starting_liquid, max_trades, townspeople)
+    # expected = 10
+    # print(result == expected)
+
+    # n = 4
+    # roads = [(0, 1, 3), (0, 2, 5), (2, 3, 7), (1, 3, 20)]
+    # start = 0
+    # end = 1
+    # delivery = (2, 3, 100)
+    # print(opt_delivery(n, roads, start, end, delivery))
+
     max_trades = 2
+    starting_liquid = 15
+    prices = [19, 9, 10, 8, 1, 1, 15, 14, 18, 6, 1, 6, 17, 9, 7, 16, 16, 3, 5, 10]
+    townspeople = [[(9, 0, 3.656247162070985), (6, 1, 2.805225927086252), (0, 2, 2.2248014163297998), (4, 3, 2.951660281097153), \
+        (12, 4, 3.894890939876782), (2, 5, 3.0713110150934093), (6, 6, 2.8543880013434118), (2, 7, 2.3624408594481436), (13, 8, 2.0647600759540414), \
+            (15, 9, 3.680007981234832), (17, 10, 0.7302290238177447), (17, 11, 2.0552664092129986), (11, 12, 1.2586513134129382), \
+                (6, 13, 1.7158570827864792), (11, 14, 2.2998672673451983), (12, 15, 1.523010528089864), (4, 16, 1.8381151394524275), \
+                    (18, 17, 3.38847047670944), (4, 18, 2.7051738088120603), (14, 19, 3.736832610334367)], [(0, 18, 3.4911864683570384)], \
+                        [(15, 7, 6.198088942564272)], [(4, 8, 2.2901587530433365)], [(12, 6, 9.21148225236829)], [(15, 0, 6.538618867666872)], \
+                            [(7, 9, 1.9693499637681267)], [(19, 7, 1.8140860769452483)], [(5, 9, 1.7981894864531622)], [(16, 2, 2.1815175998067913)], \
+                                [(16, 1, 2.676771662174662)]]
+    expected = 358.8466957914787
     print(best_trades(prices, starting_liquid, max_trades, townspeople))
-    max_trades = 7
-    print(best_trades(prices, starting_liquid, max_trades, townspeople))
-    max_trades = 9
-    print(best_trades(prices, starting_liquid, max_trades, townspeople))
-    prices = [20]
-    starting_liquid = 0
-    max_trades = 10
-    townspeople = [[(0, 0, 1), (0, 0, 0.5)], [(0, 0, 1)]]
-    result = best_trades(prices, starting_liquid, max_trades, townspeople)
-    expected = 20
-    print(result == expected)
-
-    # Test with trading all the time
-    townspeople = [[(0, 0, 2), (0, 0, 0.5)], [(0, 0, 1)]]
-    result = best_trades(prices, starting_liquid, max_trades, townspeople)
-    expected = 20 * 2 ** 10
-    print(result == expected)
-
-    prices = [10, 10, 10, 10, 10]
-    starting_liquid = 1
-    max_trades = 10
-    townspeople = [[(1, 4, 3), (1, 2, 10), (4, 0, 10), (2, 3, 2)]]
-    result = best_trades(prices, starting_liquid, max_trades, townspeople)
-    expected = 300
-    print(result == expected)
-
-    prices = [1, 3, 2, 5, 4]
-    starting_liquid = 2
-    max_trades = 3
-    townspeople = [[(1, 4, 3), (1, 2, 10), (4, 0, 10), (2, 3, 2)]]
-    result = best_trades(prices, starting_liquid, max_trades, townspeople)
-    expected = 10
-    print(result == expected)
-
-    n = 4
-    roads = [(0, 1, 3), (0, 2, 5), (2, 3, 7), (1, 3, 20)]
-    start = 0
-    end = 1
-    delivery = (2, 3, 100)
-    print(opt_delivery(n, roads, start, end, delivery))
