@@ -6,14 +6,17 @@ class Vertex:
     def __init__(self, id: int) -> None:
         self.id = id
         self.edges = []
+        self.initialise()
+
+    def add_edge(self, edge) -> None:
+        self.edges.append(edge)
+
+    def initialise(self):
         self.discovered = False
         self.visited = False
         self.value = math.inf
         self.position = None
         self.prev = None
-
-    def add_edge(self, edge) -> None:
-        self.edges.append(edge)
 
 
 class Graph:
@@ -24,6 +27,7 @@ class Graph:
             self.vertices[i] = Vertex(i)
 
     def add_edges(self, edges_count: list, directed=True) -> None:
+        edges_count.sort(key=lambda x: x[0])
         for e in edges_count:
             u, v, r = self.vertices[e[0]], self.vertices[e[1]], e[2]
             cur_edge = Edge(u, v, r)
@@ -41,8 +45,7 @@ class Graph:
 
     def reset_vertex(self):
         for v in self.vertices:
-            v.discovered = False
-            v.visited = False
+            v.initialise()
 
     def bellman_ford(self, v_count: int, source: int, max_iter: int, prices: list) -> int:
         source = self.vertices[source]
@@ -65,28 +68,28 @@ class Graph:
             trading_2 = [(0, -math.inf) for _ in range(v_count)]
         return current_max
 
-    def dijkstra(self, start: int, end: int):
+    def dijkstra(self, start: int, end: int, n: int):
         start_v, end_v = self.vertices[start], self.vertices[end]
         cost = math.inf
         discovered_queue = MinHeap(n)
-        discovered_queue.push((start_v, 0, None))  # (vertex, cost, prev)
+        discovered_queue.push(start_v) 
         start_v.value = 0
 
         while len(discovered_queue) > 0:
-            item = discovered_queue.serve()
-            u, curr_cost = item[0], item[1]
+            u = discovered_queue.serve()
             u.visited = True
-            if u.id == end_v.id and curr_cost < cost:
-                cost = curr_cost
+            if u.id == end_v.id and u.value < cost:
+                cost = u.value
             for e in u.edges:
+                new_cost = u.value + e.w
                 if e.v.visited is True:
                     pass
                 elif e.v.discovered is False:
-                    discovered_queue.push([e.v, curr_cost + e.w, u])
-                    e.v.prev, e.v.value = u, curr_cost + e.w
-                elif e.v.value > u.value + e.w:  # merge them
-                    discovered_queue.update(e.v, curr_cost + e.w)
-                    e.v.prev, e.v.value = u, curr_cost + e.w
+                    e.v.prev, e.v.value = u, new_cost
+                    discovered_queue.push(e.v)
+                elif e.v.value > new_cost:  
+                    e.v.prev, e.v.value = u, new_cost
+                    discovered_queue.update(e.v, new_cost)
                 e.v.discovered = True
         return cost
 
@@ -100,48 +103,48 @@ class MinHeap:
 
     def __init__(self, max_count: int) -> None:
         self.count = 0
-        self.the_array = [(None, 0, None) for _ in range(max_count + 1)]
-        
+        self.the_array = [None for _ in range(max_count + 1)]
+
     def __len__(self):
         return self.count
 
     def rise(self, k) -> int:
-        while k > 1 and self.the_array[k][1] < self.the_array[k // 2][1]:
+        while k > 1 and self.the_array[k].value < self.the_array[k // 2].value:
             self.the_array[k // 2], self.the_array[k] = self.the_array[k], self.the_array[k // 2]
-            self.the_array[k][0].position = k
-            self.the_array[k // 2][0].position = k // 2
+            self.the_array[k].position = k
+            self.the_array[k // 2].position = k // 2
             k = k // 2
         return k
 
-    def push(self, elem: tuple[Vertex, int, Vertex]) -> None:
+    def push(self, elem) -> None:
         self.count += 1
         self.the_array[self.count] = elem
-        self.the_array[self.count][0].position = self.count
+        self.the_array[self.count].position = self.count
         self.rise(self.count)
 
     def sink(self, pos: int) -> None:
-        left, right = 2 * pos + 1, 2 * pos + 2
+        left, right = 2 * pos, 2 * pos + 1
         if left < self.count:
             small_child = left
-            if right < self.count and self.the_array[right][1] < self.the_array[left][1]:
+            if right < self.count and self.the_array[right].value < self.the_array[left].value:
                 small_child = right
-            if self.the_array[small_child][1] < self.the_array[pos][1]:
+            if self.the_array[small_child].value < self.the_array[pos].value:
                 self.the_array[small_child], self.the_array[pos] = self.the_array[pos], self.the_array[
                     small_child]  # swap
-                self.the_array[small_child][0].position = small_child
-                self.the_array[pos][0].position = pos
+                self.the_array[small_child].position = small_child
+                self.the_array[pos].position = pos
                 self.sink(small_child)
 
-    def serve(self) -> tuple[Vertex, int, Vertex]:  # O(log n)
+    def serve(self) :  # O(log n)
         elem = self.the_array[1]
-        self.the_array[1] = []
         self.the_array[1] = self.the_array[self.count]
+        self.the_array[self.count] = None
         self.count -= 1
         self.sink(1)
         return elem
 
-    def update(self, key: Vertex, value: int) -> None:  
-        self.the_array[key.position][1] = value
+    def update(self, key: Vertex, value: int) -> None:
+        self.the_array[key.position].value = value
         self.rise(key.position)
 
 
@@ -155,30 +158,42 @@ def best_trades(prices, starting_liquid, max_trades, townspeople):
             edges.append(trade[i])
     routes = Graph(v_count)
     routes.add_edges(edges, True)
-    return routes.bellman_ford(v_count, starting_liquid, max_trades, prices)
+    return round(routes.bellman_ford(v_count, starting_liquid, max_trades, prices)) #TODO remove round
+
+
+def path_tracing(end, res): # O(V)
+    while end.prev is not None:
+        res.append(end.prev.id)
+        end = end.prev
+    res.reverse()
+    return res
 
 
 def opt_delivery(n, roads, start, end, delivery):
-    res = [end]
     route = Graph(n)
     route.add_edges(roads, False)
 
     # path includes delivery
-    d_cost = route.dijkstra(start, delivery[0])
+    d_cost = route.dijkstra(start, delivery[0], n)
+    d_path = path_tracing(route.get_vertex(delivery[0]), [])
     route.reset_vertex()
-    d_cost += route.dijkstra(delivery[0], delivery[1]) - delivery[2]
+    d_cost += route.dijkstra(delivery[0], delivery[1], n) - delivery[2]
+    d_path += path_tracing(route.get_vertex(delivery[1]), [])
     route.reset_vertex()
     if delivery[1] != end:
-        d_cost += route.dijkstra(delivery[1], end)
+        d_cost += route.dijkstra(delivery[1], end, n)
+        d_path += path_tracing(route.get_vertex(end), [end])
         route.reset_vertex()
+    else:
+        d_path.append(end)
 
     # path without delivery
-    cost = route.dijkstra(start, end)
+    cost = route.dijkstra(start, end, n)
+    path = path_tracing(route.get_vertex(end), [end])
 
-    print("d_cost = " + str(d_cost))
-    print("cost = " + str(cost))
-
-
+    if cost < d_cost:
+        return cost, path
+    return d_cost, d_path
 
 
 if __name__ == "__main__":
@@ -230,10 +245,23 @@ if __name__ == "__main__":
     # delivery = (2, 3, 100)
     # print(opt_delivery(n, roads, start, end, delivery))
 
-    expected = (-684, [94, 88, 65, 23, 75, 19, 75, 23, 65, 88, 94, 28, 97])
+    # expected = (-684, [94, 88, 65, 23, 75, 19, 75, 23, 65, 88, 94, 28, 97])
     n = 100
-    start = 94
-    end = 97
-    delivery = (19, 94, 745)
+    # start = 94
+    # end = 97
+    # delivery = (19, 94, 745)
     roads = Road().roads
-    print(opt_delivery(n, roads, start, end, delivery))
+    # print(opt_delivery(n, roads, start, end, delivery))
+
+    r = Road()
+    failed = 0
+    for s in range(len(r.setup)):
+        setp = r.setup[s]
+        if opt_delivery(100 , roads , setp[0] , setp[1] , setp[2])[0] != r.answer[s][0][0] :
+            print("Ans = " + str(opt_delivery(100 , roads , setp[0] , setp[1] , setp[2])))
+            print("Expected = " + str(r.answer[s][0]))
+            failed += 1
+    print("Failed = " + str(failed))
+    print("Total = " + str(len(r.setup)))
+
+    
