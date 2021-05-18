@@ -138,13 +138,14 @@ class MinHeap:
     def serve(self) :  # O(log n)
         elem = self.the_array[1]
         self.the_array[1] = self.the_array[self.count]
+        self.the_array[1].position = 1
         self.the_array[self.count] = None
         self.count -= 1
         self.sink(1)
         return elem
 
     def update(self, key: Vertex, value: int) -> None:
-        self.the_array[key.position].value = value
+        # self.the_array[key.position].value = value
         self.rise(key.position)
 
 
@@ -238,12 +239,12 @@ if __name__ == "__main__":
     # expected = 10
     # print(result == expected)
     #
-    # n = 4
-    # roads = [(0, 1, 3), (0, 2, 5), (2, 3, 7), (1, 3, 20)]
-    # start = 0
-    # end = 1
-    # delivery = (2, 3, 100)
-    # print(opt_delivery(n, roads, start, end, delivery))
+    n = 4
+    roads = [(0, 1, 3), (0, 2, 5), (2, 3, 7), (1, 3, 20)]
+    start = 0
+    end = 1
+    delivery = (2, 3, 25)
+    print(opt_delivery(n, roads, start, end, delivery))
 
     # expected = (-684, [94, 88, 65, 23, 75, 19, 75, 23, 65, 88, 94, 28, 97])
     n = 100
