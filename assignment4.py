@@ -1,5 +1,4 @@
 import math
-from roads import Road
 
 
 class Vertex:
@@ -69,7 +68,7 @@ class Graph:
         return current_max
 
     def dijkstra(self, start: int, end: int, n: int):
-        start_v, end_v = self.vertices[start], self.vertices[end]
+        start_v = self.vertices[start]
         cost = math.inf
         discovered_queue = MinHeap(n)
         discovered_queue.push(start_v) 
@@ -78,18 +77,21 @@ class Graph:
         while len(discovered_queue) > 0:
             u = discovered_queue.serve()
             u.visited = True
-            if u.id == end_v.id and u.value < cost:
+            if u.id == end and u.value < cost:
                 cost = u.value
             for e in u.edges:
                 new_cost = u.value + e.w
                 if e.v.visited is True:
+                    if e.v.value > new_cost and e.v.id == end:  
+                        cost = new_cost
+                        e.v.prev, e.v.value = u, new_cost
                     pass
                 elif e.v.discovered is False:
                     e.v.prev, e.v.value = u, new_cost
                     discovered_queue.push(e.v)
                 elif e.v.value > new_cost:  
                     e.v.prev, e.v.value = u, new_cost
-                    discovered_queue.update(e.v, new_cost)
+                    discovered_queue.update(e.v)
                 e.v.discovered = True
         return cost
 
@@ -126,7 +128,7 @@ class MinHeap:
         left, right = 2 * pos, 2 * pos + 1
         if left < self.count:
             small_child = left
-            if right < self.count and self.the_array[right].value < self.the_array[left].value:
+            if right <= self.count and self.the_array[right].value < self.the_array[left].value:
                 small_child = right
             if self.the_array[small_child].value < self.the_array[pos].value:
                 self.the_array[small_child], self.the_array[pos] = self.the_array[pos], self.the_array[
@@ -144,8 +146,7 @@ class MinHeap:
         self.sink(1)
         return elem
 
-    def update(self, key: Vertex, value: int) -> None:
-        # self.the_array[key.position].value = value
+    def update(self, key: Vertex) -> None:
         self.rise(key.position)
 
 
@@ -159,7 +160,7 @@ def best_trades(prices, starting_liquid, max_trades, townspeople):
             edges.append(trade[i])
     routes = Graph(v_count)
     routes.add_edges(edges, True)
-    return round(routes.bellman_ford(v_count, starting_liquid, max_trades, prices)) #TODO remove round
+    return routes.bellman_ford(v_count, starting_liquid, max_trades, prices)
 
 
 def path_tracing(end, res): # O(V)
@@ -192,7 +193,7 @@ def opt_delivery(n, roads, start, end, delivery):
     cost = route.dijkstra(start, end, n)
     path = path_tracing(route.get_vertex(end), [end])
 
-    if cost < d_cost:
+    if cost <= d_cost:
         return cost, path
     return d_cost, d_path
 
@@ -239,30 +240,23 @@ if __name__ == "__main__":
     # expected = 10
     # print(result == expected)
     #
-    n = 4
-    roads = [(0, 1, 3), (0, 2, 5), (2, 3, 7), (1, 3, 20)]
-    start = 0
-    end = 1
-    delivery = (2, 3, 25)
-    print(opt_delivery(n, roads, start, end, delivery))
-
-    # expected = (-684, [94, 88, 65, 23, 75, 19, 75, 23, 65, 88, 94, 28, 97])
-    n = 100
-    # start = 94
-    # end = 97
-    # delivery = (19, 94, 745)
-    roads = Road().roads
+    # n = 4
+    # roads = [(0, 1, 3), (0, 2, 5), (2, 3, 7), (1, 3, 20)]
+    # start = 0
+    # end = 1
+    # delivery = (2, 3, 25)
     # print(opt_delivery(n, roads, start, end, delivery))
 
-    r = Road()
-    failed = 0
-    for s in range(len(r.setup)):
-        setp = r.setup[s]
-        if opt_delivery(100 , roads , setp[0] , setp[1] , setp[2])[0] != r.answer[s][0][0] :
-            print("Ans = " + str(opt_delivery(100 , roads , setp[0] , setp[1] , setp[2])))
-            print("Expected = " + str(r.answer[s][0]))
-            failed += 1
-    print("Failed = " + str(failed))
-    print("Total = " + str(len(r.setup)))
+    n = 9
+    roads = [[3, 1, 4], [1, 0, 9], [1, 5, 5], [0, 7, 9], [1, 4, 4], [1, 2, 2], [0, 6, 8], [3, 8, 1], 
+             [8, 6, 4], [2, 4, 3], [2, 3, 9], [7, 1, 9], [3, 6, 3], [2, 0, 7], [0, 5, 2], [8, 1, 2], 
+             [4, 0, 7], [2, 6, 2], [5, 2, 3], [5, 4, 6], [5, 8, 6], [5, 3, 8], [6, 7, 8], [6, 1, 0]]
+    start = 8
+    end = 7
+    delivery = (7, 4, 9)
+    
+    expected = (10, [8, 1, 6, 7])
+    got = (11, [8, 1, 7])
+    print(opt_delivery(n, roads, start, end, delivery))
 
     
