@@ -2,7 +2,7 @@ import math
 
 
 class Vertex:
-    def __init__(self, id: int) -> None:
+    def __init__(self, id) -> None:
         self.id = id
         self.edges = []
         self.initialise()
@@ -19,13 +19,13 @@ class Vertex:
 
 
 class Graph:
-    def __init__(self, v_count: int) -> None:
+    def __init__(self, v_count):
         self.vertices = [None] * v_count
         self.edges = []
         for i in range(v_count):
             self.vertices[i] = Vertex(i)
 
-    def add_edges(self, edges_count: list, directed=True) -> None:
+    def add_edges(self, edges_count, directed=True):
         edges_count.sort(key=lambda x: x[0])
         for e in edges_count:
             u, v, r = self.vertices[e[0]], self.vertices[e[1]], e[2]
@@ -39,14 +39,14 @@ class Graph:
                 u.add_edge(cur_edge)
                 self.edges.append(cur_edge)
 
-    def get_vertex(self, id: int) -> Vertex:
+    def get_vertex(self, id):
         return self.vertices[id]
 
     def reset_vertex(self):
         for v in self.vertices:
             v.initialise()
 
-    def bellman_ford(self, v_count: int, source: int, max_iter: int, prices: list) -> int:
+    def bellman_ford(self, v_count, source, max_iter, prices):
         source = self.vertices[source]
         trading = [(0, -math.inf) for _ in range(v_count)]  # (litre, value)
         trading[source.id] = (1, prices[source.id])
@@ -67,11 +67,11 @@ class Graph:
             trading_2 = [(0, -math.inf) for _ in range(v_count)]
         return current_max
 
-    def dijkstra(self, start: int, end: int, n: int):
+    def dijkstra(self, start, end, n):
         start_v = self.vertices[start]
         cost = math.inf
         discovered_queue = MinHeap(n)
-        discovered_queue.push(start_v) 
+        discovered_queue.push(start_v)
         start_v.value = 0
 
         while len(discovered_queue) > 0:
@@ -82,14 +82,11 @@ class Graph:
             for e in u.edges:
                 new_cost = u.value + e.w
                 if e.v.visited is True:
-                    if e.v.value > new_cost and e.v.id == end:  
-                        cost = new_cost
-                        e.v.prev, e.v.value = u, new_cost
                     pass
                 elif e.v.discovered is False:
                     e.v.prev, e.v.value = u, new_cost
                     discovered_queue.push(e.v)
-                elif e.v.value > new_cost:  
+                elif e.v.value > new_cost:
                     e.v.prev, e.v.value = u, new_cost
                     discovered_queue.update(e.v)
                 e.v.discovered = True
@@ -97,36 +94,37 @@ class Graph:
 
 
 class Edge:
-    def __init__(self, u: Vertex, v: Vertex, w) -> None:
+    def __init__(self, u, v, w):
         self.u, self.v, self.w = u, v, w
 
 
 class MinHeap:
 
-    def __init__(self, max_count: int) -> None:
+    def __init__(self, max_count):
         self.count = 0
         self.the_array = [None for _ in range(max_count + 1)]
 
     def __len__(self):
         return self.count
 
-    def rise(self, k) -> int:
+    def rise(self, k):
         while k > 1 and self.the_array[k].value < self.the_array[k // 2].value:
-            self.the_array[k // 2], self.the_array[k] = self.the_array[k], self.the_array[k // 2]
+            self.the_array[k //
+                           2], self.the_array[k] = self.the_array[k], self.the_array[k // 2]
             self.the_array[k].position = k
             self.the_array[k // 2].position = k // 2
             k = k // 2
         return k
 
-    def push(self, elem) -> None:
+    def push(self, elem):
         self.count += 1
         self.the_array[self.count] = elem
         self.the_array[self.count].position = self.count
         self.rise(self.count)
 
-    def sink(self, pos: int) -> None:
+    def sink(self, pos):
         left, right = 2 * pos, 2 * pos + 1
-        if left < self.count:
+        if left <= self.count:
             small_child = left
             if right <= self.count and self.the_array[right].value < self.the_array[left].value:
                 small_child = right
@@ -137,7 +135,7 @@ class MinHeap:
                 self.the_array[pos].position = pos
                 self.sink(small_child)
 
-    def serve(self) :  # O(log n)
+    def serve(self):  # O(log n)
         elem = self.the_array[1]
         self.the_array[1] = self.the_array[self.count]
         self.the_array[1].position = 1
@@ -146,7 +144,7 @@ class MinHeap:
         self.sink(1)
         return elem
 
-    def update(self, key: Vertex) -> None:
+    def update(self, key):
         self.rise(key.position)
 
 
@@ -163,7 +161,7 @@ def best_trades(prices, starting_liquid, max_trades, townspeople):
     return routes.bellman_ford(v_count, starting_liquid, max_trades, prices)
 
 
-def path_tracing(end, res): # O(V)
+def path_tracing(end, res):  # O(V)
     while end.prev is not None:
         res.append(end.prev.id)
         end = end.prev
@@ -199,64 +197,12 @@ def opt_delivery(n, roads, start, end, delivery):
 
 
 if __name__ == "__main__":
-    # prices = [10, 5, 1, 0.1]
-    # starting_liquid = 0
-    # max_trades = 6
-    # townspeople = [[(0, 1, 4), (2, 3, 30)], [(1, 2, 2.5), (2, 0, 0.2)]]
-    # print(best_trades(prices, starting_liquid, max_trades, townspeople))
-    # max_trades = 2
-    # print(best_trades(prices, starting_liquid, max_trades, townspeople))
-    # max_trades = 7
-    # print(best_trades(prices, starting_liquid, max_trades, townspeople))
-    # max_trades = 9
-    # print(best_trades(prices, starting_liquid, max_trades, townspeople))
-    # prices = [20]
-    # starting_liquid = 0
-    # max_trades = 10
-    # townspeople = [[(0, 0, 1), (0, 0, 0.5)], [(0, 0, 1)]]
-    # result = best_trades(prices, starting_liquid, max_trades, townspeople)
-    # expected = 20
-    # print(result == expected)
-    #
-    # # Test with trading all the time
-    # townspeople = [[(0, 0, 2), (0, 0, 0.5)], [(0, 0, 1)]]
-    # result = best_trades(prices, starting_liquid, max_trades, townspeople)
-    # expected = 20 * 2 ** 10
-    # print(result == expected)
-    #
-    # prices = [10, 10, 10, 10, 10]
-    # starting_liquid = 1
-    # max_trades = 10
-    # townspeople = [[(1, 4, 3), (1, 2, 10), (4, 0, 10), (2, 3, 2)]]
-    # result = best_trades(prices, starting_liquid, max_trades, townspeople)
-    # expected = 300
-    # print(result == expected)
-    #
-    # prices = [1, 3, 2, 5, 4]
-    # starting_liquid = 2
-    # max_trades = 3
-    # townspeople = [[(1, 4, 3), (1, 2, 10), (4, 0, 10), (2, 3, 2)]]
-    # result = best_trades(prices, starting_liquid, max_trades, townspeople)
-    # expected = 10
-    # print(result == expected)
-    #
-    # n = 4
-    # roads = [(0, 1, 3), (0, 2, 5), (2, 3, 7), (1, 3, 20)]
-    # start = 0
-    # end = 1
-    # delivery = (2, 3, 25)
-    # print(opt_delivery(n, roads, start, end, delivery))
+    n = 15
+    roads = [(0, 6, 0), (0, 4, 31), (1, 8, 17), (2, 8, 24), (3, 9, 25), (3, 7, 22), (3, 8, 32), (4, 2, 33), (5, 0, 13), (5, 6, 15), (6, 4, 19), (7, 5, 14), (8, 3, 6), (9, 5, 4), (9, 5, 13)]
+    start = 1
+    end = 6
+    delivery = [0, 1, 97]
 
-    n = 9
-    roads = [[3, 1, 4], [1, 0, 9], [1, 5, 5], [0, 7, 9], [1, 4, 4], [1, 2, 2], [0, 6, 8], [3, 8, 1], 
-             [8, 6, 4], [2, 4, 3], [2, 3, 9], [7, 1, 9], [3, 6, 3], [2, 0, 7], [0, 5, 2], [8, 1, 2], 
-             [4, 0, 7], [2, 6, 2], [5, 2, 3], [5, 4, 6], [5, 8, 6], [5, 3, 8], [6, 7, 8], [6, 1, 0]]
-    start = 8
-    end = 7
-    delivery = (7, 4, 9)
-    
-    expected = (10, [8, 1, 6, 7])
+    expected = (65, [1, 8, 3, 9, 5, 0, 6])
     got = (11, [8, 1, 7])
     print(opt_delivery(n, roads, start, end, delivery))
-
-    
